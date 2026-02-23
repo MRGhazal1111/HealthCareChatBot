@@ -53,7 +53,8 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
-user_name = "MOHAMED GHAZAL"
+ # Instead of user_name = "MOHAMED GHAZAL"
+user_name = st.sidebar.text_input("Please sign in with your name:", value="Guest")
 st.title(f"Good morning, {user_name}!")
 
 if "messages" not in st.session_state:
