@@ -2,5 +2,6 @@ streamlit
 groq
 streamlit-mic-recorder
 streamlit-float
+python-dotenv
 pandas
 numpy
