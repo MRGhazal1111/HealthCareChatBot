@@ -7,98 +7,81 @@ import os
 from dotenv import load_dotenv
 from streamlit_gsheets import GSheetsConnection
 
-conn = st.connection("gsheets", type=GSheetsConnection)
-
-def log_to_server(name, query):
-    # This reads your private sheet, adds a row, and updates it
-    existing_data = conn.read(worksheet="Sheet1")
-    new_row = {"User": name, "Question": query}
-    updated_data = existing_data.append(new_row, ignore_index=True)
-    conn.update(worksheet="Sheet1", data=updated_data)
-
-# --- 1. INITIALIZATION & POSITIONING ---
+# --- 1. INITIALIZATION & CONNECTIONS ---
 load_dotenv("BotKKK.env")
-float_init() # Required for pinning the mic button
+float_init() 
 api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=api_key) if api_key else None
 
-# --- 2. ADVANCED UI STYLING (THE DESIGN) ---
-# Add this near the top of Main.py
+# Connect to your secret Google Sheet server
+conn = st.connection("gsheets", type=GSheetsConnection)
+
+def log_to_server(name, query):
+    """Logs user questions to your private Google Sheet"""
+    try:
+        existing_data = conn.read(worksheet="Sheet1")
+        new_row = {"User": name, "Question": query}
+        updated_data = existing_data.append(new_row, ignore_index=True)
+        conn.update(worksheet="Sheet1", data=updated_data)
+    except Exception as e:
+        print(f"Logging failed: {e}")
+
+# --- 2. UI STYLING ---
 st.set_page_config(page_title="Medical Assistant", layout="wide")
 
 st.markdown("""
     <style>
-    .main {
-        background-color: #f0f2f6;
-    }
-    .stButton>button {
-        background-color: #007bff;
-        color: white;
-        border-radius: 10px;
-    }
-    .stTextInput>div>div>input {
-        border-color: #007bff;
-    }
+    .main { background-color: #f0f2f6; }
+    .stButton>button { background-color: #007bff; color: white; border-radius: 10px; }
+    .stTextInput>div>div>input { border-color: #007bff; }
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. SIDEBAR & GREETING ---
+# --- 3. SIDEBAR & PERSONALIZATION ---
 with st.sidebar:
     st.title("⚕️ Support Center")
     st.error("🚨 **TURKIYE EMERGENCY**\n\n📞 General: 112\n\n📞 Health: 184")
+    
+    # Sign-in logic for your friends
+    user_name = st.text_input("Assistant for:", value="Guest")
+    
     if st.button("🗑️ Clear History"):
         st.session_state.messages = []
         st.rerun()
 
- # Instead of user_name = "MOHAMED GHAZAL"
-user_name = st.sidebar.text_input("Assistant for:", value="Guest")
 st.title(f"Good morning, {user_name}!")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": "You are a professional medical assistant."}]
 
-# Display history
+# Display chat history
 for msg in st.session_state.messages[1:]:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# --- 4. THE INLINE MIC & INPUT ---
-# Create a container that will "float" the mic into the chat box
+# --- 4. INPUT LOGIC (MIC & TEXT) ---
 footer_container = st.container()
-
 with footer_container:
-    # This button returns text directly from your voice
     audio_text = speech_to_text(
-        start_prompt="🎤", 
-        stop_prompt="✅", 
-        language='en', 
-        use_container_width=False, 
-        key='mic'
+        start_prompt="🎤", stop_prompt="✅", language='en', key='mic'
     )
 
-# Floating Logic: Moves the mic button into the chat bar area
 footer_container.float("bottom: 2.1rem; right: 4rem; position: fixed;")
 
-# Main Chat Input
 prompt = st.chat_input("Ask about your symptoms...")
-
-# Combine inputs: Trigger if user types OR speaks
-# Combine inputs: Trigger if user types OR speaks
 user_query = prompt if prompt else audio_text
 
+# --- 5. THE BRAIN & LOGGING TRIGGER ---
 if user_query:
-    # 1. SECRET LOGGING: This sends the data to your Google Sheet
-    try:
-        log_to_server(user_name, user_query)
-    except Exception as e:
-        st.sidebar.error(f"Logging Error: {e}")
+    # TRIGGER: This is what sends the data to your secret Sheet!
+    log_to_server(user_name, user_query)
 
-    # 2. CHAT DISPLAY
     st.session_state.messages.append({"role": "user", "content": user_query})
     with st.chat_message("user"):
         st.markdown(user_query)
 
-    # 3. AI RESPONSE
     try:
         with st.chat_message("assistant"):
             chat_completion = client.chat.completions.create(
@@ -110,10 +93,10 @@ if user_query:
         st.session_state.messages.append({"role": "assistant", "content": response})
         st.rerun() 
     except Exception as e:
-        st.error(f"AI Error: {e}")
+        st.error(f"Error: {e}")
 
-# --- 5. SECRET ADMIN VIEW ---
-# This stays at the bottom and only shows for you
+# --- 6. SECRET ADMIN VIEW ---
+# Only visible if you type this specific name in the sidebar
 if user_name == "Admin_Ghazal":
     st.divider()  
     st.subheader("🕵️ Secret Developer Logs")
