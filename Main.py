@@ -103,8 +103,9 @@ if user_query:
     except Exception as e:
         st.error(f"Error: {e}")
 #the new update
-    if user_name == "Admin_Ghazal":  # Choose a secret name only you know
-    st.divider()
+   # Line 106
+if user_name == "Admin_Ghazal":
+    st.divider()  # This must be indented!
     st.subheader("Secret Developer Logs")
     data = conn.read(worksheet="Sheet1")
-    st.dataframe(data)  # This shows you the table of everyone's questions
+    st.dataframe(data)
