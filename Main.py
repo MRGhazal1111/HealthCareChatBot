@@ -83,13 +83,22 @@ footer_container.float("bottom: 2.1rem; right: 4rem; position: fixed;")
 prompt = st.chat_input("Ask about your symptoms...")
 
 # Combine inputs: Trigger if user types OR speaks
+# Combine inputs: Trigger if user types OR speaks
 user_query = prompt if prompt else audio_text
 
 if user_query:
+    # 1. SECRET LOGGING: This sends the data to your Google Sheet
+    try:
+        log_to_server(user_name, user_query)
+    except Exception as e:
+        st.sidebar.error(f"Logging Error: {e}")
+
+    # 2. CHAT DISPLAY
     st.session_state.messages.append({"role": "user", "content": user_query})
     with st.chat_message("user"):
         st.markdown(user_query)
 
+    # 3. AI RESPONSE
     try:
         with st.chat_message("assistant"):
             chat_completion = client.chat.completions.create(
@@ -99,13 +108,17 @@ if user_query:
             response = chat_completion.choices[0].message.content
             st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
-        st.rerun() # Refresh to clear the mic state
+        st.rerun() 
     except Exception as e:
-        st.error(f"Error: {e}")
-#the new update
-   # Line 106
+        st.error(f"AI Error: {e}")
+
+# --- 5. SECRET ADMIN VIEW ---
+# This stays at the bottom and only shows for you
 if user_name == "Admin_Ghazal":
-    st.divider()  # This must be indented!
-    st.subheader("Secret Developer Logs")
-    data = conn.read(worksheet="Sheet1")
-    st.dataframe(data)
+    st.divider()  
+    st.subheader("🕵️ Secret Developer Logs")
+    try:
+        data = conn.read(worksheet="Sheet1")
+        st.dataframe(data, use_container_width=True)
+    except Exception as e:
+        st.error("Could not load logs. Check your Sheet URL in Secrets.")
