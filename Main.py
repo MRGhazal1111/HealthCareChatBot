@@ -102,3 +102,9 @@ if user_query:
         st.rerun() # Refresh to clear the mic state
     except Exception as e:
         st.error(f"Error: {e}")
+#the new update
+    if user_name == "Admin_Ghazal":  # Choose a secret name only you know
+    st.divider()
+    st.subheader("Secret Developer Logs")
+    data = conn.read(worksheet="Sheet1")
+    st.dataframe(data)  # This shows you the table of everyone's questions
