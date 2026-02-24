@@ -5,6 +5,16 @@ from streamlit_float import *
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+from streamlit_gsheets import GSheetsConnection
+
+conn = st.connection("gsheets", type=GSheetsConnection)
+
+def log_to_server(name, query):
+    # This reads your private sheet, adds a row, and updates it
+    existing_data = conn.read(worksheet="Sheet1")
+    new_row = {"User": name, "Question": query}
+    updated_data = existing_data.append(new_row, ignore_index=True)
+    conn.update(worksheet="Sheet1", data=updated_data)
 
 # --- 1. INITIALIZATION & POSITIONING ---
 load_dotenv("BotKKK.env")
@@ -13,37 +23,24 @@ api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=api_key) if api_key else None
 
 # --- 2. ADVANCED UI STYLING (THE DESIGN) ---
-st.set_page_config(page_title="AI Health Assistant Pro", layout="wide")
+# Add this near the top of Main.py
+st.set_page_config(page_title="Medical Assistant", layout="wide")
 
 st.markdown("""
-<style>
-    /* Gradient Background */
-    .stApp {
-        background: linear-gradient(180deg, #0f172a 0%, #020617 100%) !important;
+    <style>
+    .main {
+        background-color: #f0f2f6;
     }
-
-    /* Professional Sidebar */
-    [data-testid="stSidebar"] {
-        background-color: #020617 !important;
-        border-right: 1px solid #1e293b !important;
+    .stButton>button {
+        background-color: #007bff;
+        color: white;
+        border-radius: 10px;
     }
-
-    /* Chat Message Bubbles */
-    .stChatMessage {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 20px !important;
-        margin-bottom: 10px !important;
+    .stTextInput>div>div>input {
+        border-color: #007bff;
     }
-
-    /* THE MAGIC: Adjusting the Chat Input to leave room for the mic */
-    .stChatInputContainer {
-        padding-right: 50px !important;
-        border-radius: 25px !important;
-        border: 1px solid #3b82f6 !important;
-    }
-</style>
-""", unsafe_allow_html=True)
+    </style>
+    """, unsafe_allow_html=True)
 
 # --- 3. SIDEBAR & GREETING ---
 with st.sidebar:
@@ -54,7 +51,7 @@ with st.sidebar:
         st.rerun()
 
  # Instead of user_name = "MOHAMED GHAZAL"
-user_name = st.sidebar.text_input("Please sign in with your name:", value="Guest")
+user_name = st.sidebar.text_input("Assistant for:", value="Guest")
 st.title(f"Good morning, {user_name}!")
 
 if "messages" not in st.session_state:
