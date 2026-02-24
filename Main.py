@@ -17,10 +17,12 @@ client = Groq(api_key=api_key) if api_key else None
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 def log_to_server(name, query):
-    """Logs user questions to your private Google Sheet"""
+    """Logs user questions to your private Google Sheet with a timestamp"""
     try:
+        # Get current time for your records
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         existing_data = conn.read(worksheet="Sheet1")
-        new_row = {"User": name, "Question": query}
+        new_row = {"User": name, "Question": query, "Time": now}
         updated_data = existing_data.append(new_row, ignore_index=True)
         conn.update(worksheet="Sheet1", data=updated_data)
     except Exception as e:
@@ -44,7 +46,7 @@ with st.sidebar:
     st.title("⚕️ Support Center")
     st.error("🚨 **TURKIYE EMERGENCY**\n\n📞 General: 112\n\n📞 Health: 184")
     
-    # Sign-in logic for your friends
+    # Sign-in logic for your friends (Responsive)
     user_name = st.text_input("Assistant for:", value="Guest")
     
     if st.button("🗑️ Clear History"):
@@ -75,7 +77,7 @@ user_query = prompt if prompt else audio_text
 
 # --- 5. THE BRAIN & LOGGING TRIGGER ---
 if user_query:
-    # TRIGGER: This is what sends the data to your secret Sheet!
+    # TRIGGER: This is what finally sends the data to your secret Sheet!
     log_to_server(user_name, user_query)
 
     st.session_state.messages.append({"role": "user", "content": user_query})
@@ -96,7 +98,7 @@ if user_query:
         st.error(f"Error: {e}")
 
 # --- 6. SECRET ADMIN VIEW ---
-# Only visible if you type this specific name in the sidebar
+# Hidden dashboard: Only shows if you type "Admin_Ghazal" in the sidebar
 if user_name == "Admin_Ghazal":
     st.divider()  
     st.subheader("🕵️ Secret Developer Logs")
