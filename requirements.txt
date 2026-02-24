@@ -3,5 +3,6 @@ groq
 streamlit-mic-recorder
 streamlit-float
 python-dotenv
+st-gsheets-connection
 pandas
 numpy
