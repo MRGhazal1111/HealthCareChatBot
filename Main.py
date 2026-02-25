@@ -36,7 +36,7 @@ st.markdown("""
 if "user_name" not in st.session_state:
     st.markdown("## ⚕️ Medical Assistant Portal")
     st.info("Welcome! Please enter your name to start the secure consultation.")
-    name_input = st.text_input("Full Name:", placeholder="e.g. Mohamed Ghazal")
+    name_input = st.text_input("Full Name:", placeholder="e.g. Ghazal")
     
     if st.button("Enter Assistant"):
         if name_input:
