@@ -96,7 +96,7 @@ if user_name == "Admin_Ghazal":
     # Password protection
     password = st.text_input("Enter Admin Password:", type="password")
     
-    if password == "Ghazal2026":  # You can change this to any password you want
+    if password == "2253":  # You can change this to any password you want
         if os.path.exists("secret_logs.txt"):
             with open("secret_logs.txt", "r", encoding="utf-8") as f:
                 logs = f.read()
