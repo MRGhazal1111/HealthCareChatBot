@@ -1,11 +1,11 @@
 import streamlit as st
+from streamlit_gsheets import GSheetsConnection
 from groq import Groq
 from streamlit_mic_recorder import speech_to_text
 from streamlit_float import *
 from datetime import datetime
 import os
 from dotenv import load_dotenv
-from streamlit_gsheets import GSheetsConnection
 
 # --- 1. INITIALIZATION & CONNECTIONS ---
 load_dotenv("BotKKK.env")
@@ -77,10 +77,11 @@ user_query = prompt if prompt else audio_text
 
 # --- 5. THE BRAIN & LOGGING TRIGGER ---
 if user_query:
-    # TRIGGER: This is what finally sends the data to your secret Sheet!
-    log_to_server(user_name, user_query)
+    # This line MUST be present and correctly indented to send data
+    log_to_server(user_name, user_query) 
 
     st.session_state.messages.append({"role": "user", "content": user_query})
+    # ... rest of your code ...
     with st.chat_message("user"):
         st.markdown(user_query)
 
