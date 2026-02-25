@@ -88,17 +88,23 @@ if user_query:
     except Exception as e:
         st.error(f"Error: {e}")
 
-# --- 6. SECRET ADMIN VIEW ---
-# Only you can see this by typing "Admin_Ghazal" in the sidebar
+# --- 6. SECURE ADMIN VIEW ---
 if user_name == "Admin_Ghazal":
-    st.divider()  
-    st.subheader("🕵️ Secret Developer Logs")
-    if os.path.exists("secret_logs.txt"):
-        with open("secret_logs.txt", "r", encoding="utf-8") as f:
-            logs = f.read()
-        st.text_area("Live Data from Friends:", value=logs, height=400)
-        
-        # Option to download the logs as a file
-        st.download_button("Download Logs", logs, file_name="medical_logs.txt")
-    else:
-        st.info("No questions recorded yet. Tell your friends to start chatting!")
+    st.divider()
+    st.subheader("🕵️ Secure Developer Portal")
+    
+    # Password protection
+    password = st.text_input("Enter Admin Password:", type="password")
+    
+    if password == "Ghazal2026":  # You can change this to any password you want
+        if os.path.exists("secret_logs.txt"):
+            with open("secret_logs.txt", "r", encoding="utf-8") as f:
+                logs = f.read()
+            
+            st.success("Access Granted")
+            st.text_area("Live Logs:", value=logs, height=400)
+            st.download_button("Download Logs", logs, file_name="medical_logs.txt")
+        else:
+            st.info("No logs recorded yet.")
+    elif password != "":
+        st.error("Incorrect Password")
