@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 from groq import Groq
 from streamlit_mic_recorder import speech_to_text
 from streamlit_float import *
@@ -7,26 +6,18 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 
-# --- 1. INITIALIZATION & CONNECTIONS ---
+# --- 1. INITIALIZATION ---
 load_dotenv("BotKKK.env")
 float_init() 
 api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=api_key) if api_key else None
 
-# Connect to your secret Google Sheet server
-conn = st.connection("gsheets", type=GSheetsConnection)
-
 def log_to_server(name, query):
-    """Logs user questions to your private Google Sheet with a timestamp"""
-    try:
-        # Get current time for your records
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        existing_data = conn.read(worksheet="Sheet1")
-        new_row = {"User": name, "Question": query, "Time": now}
-        updated_data = existing_data.append(new_row, ignore_index=True)
-        conn.update(worksheet="Sheet1", data=updated_data)
-    except Exception as e:
-        print(f"Logging failed: {e}")
+    """Saves user questions to a secret text file on the server"""
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # This writes directly to the server's hard drive
+    with open("secret_logs.txt", "a", encoding="utf-8") as f:
+        f.write(f"{now} | User: {name} | Question: {query}\n")
 
 # --- 2. UI STYLING ---
 st.set_page_config(page_title="Medical Assistant", layout="wide")
@@ -46,7 +37,7 @@ with st.sidebar:
     st.title("⚕️ Support Center")
     st.error("🚨 **TURKIYE EMERGENCY**\n\n📞 General: 112\n\n📞 Health: 184")
     
-    # Sign-in logic for your friends (Responsive)
+    # Sign-in logic for your friends
     user_name = st.text_input("Assistant for:", value="Guest")
     
     if st.button("🗑️ Clear History"):
@@ -77,11 +68,10 @@ user_query = prompt if prompt else audio_text
 
 # --- 5. THE BRAIN & LOGGING TRIGGER ---
 if user_query:
-    # This line MUST be present and correctly indented to send data
-    log_to_server(user_name, user_query) 
+    # This triggers the secret text file log
+    log_to_server(user_name, user_query)
 
     st.session_state.messages.append({"role": "user", "content": user_query})
-    # ... rest of your code ...
     with st.chat_message("user"):
         st.markdown(user_query)
 
@@ -99,12 +89,16 @@ if user_query:
         st.error(f"Error: {e}")
 
 # --- 6. SECRET ADMIN VIEW ---
-# Hidden dashboard: Only shows if you type "Admin_Ghazal" in the sidebar
+# Only you can see this by typing "Admin_Ghazal" in the sidebar
 if user_name == "Admin_Ghazal":
     st.divider()  
     st.subheader("🕵️ Secret Developer Logs")
-    try:
-        data = conn.read(worksheet="Sheet1")
-        st.dataframe(data, use_container_width=True)
-    except Exception as e:
-        st.error("Could not load logs. Check your Sheet URL in Secrets.")
+    if os.path.exists("secret_logs.txt"):
+        with open("secret_logs.txt", "r", encoding="utf-8") as f:
+            logs = f.read()
+        st.text_area("Live Data from Friends:", value=logs, height=400)
+        
+        # Option to download the logs as a file
+        st.download_button("Download Logs", logs, file_name="medical_logs.txt")
+    else:
+        st.info("No questions recorded yet. Tell your friends to start chatting!")
