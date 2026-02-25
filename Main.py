@@ -120,7 +120,7 @@ if user_name == "Admin_Ghazal":
     st.subheader("🕵️ Secure Developer Portal")
     admin_pass = st.text_input("Admin Password:", type="password")
     
-    if admin_pass == "Ghazal2026":
+    if admin_pass == "2253":
         st.success("Access Granted")
         if os.path.exists("secret_logs.txt"):
             with open("secret_logs.txt", "r", encoding="utf-8") as f:
