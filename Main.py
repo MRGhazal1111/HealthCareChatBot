@@ -44,8 +44,19 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
-st.title(f"Good morning, {user_name}!")
+# Get the current hour (24-hour format)
+current_hour = datetime.now().hour
 
+# Determine the greeting based on the time of day
+if 5 <= current_hour < 12:
+    greeting = "Good morning"
+elif 12 <= current_hour < 18:
+    greeting = "Good afternoon"
+else:
+    greeting = "Good evening"
+
+# Display the title with the flexible greeting
+st.title(f" {greeting}, {user_name}!")
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": "You are a professional medical assistant."}]
 
